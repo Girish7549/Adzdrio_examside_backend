@@ -4,15 +4,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import fs from "fs";
 import morgan from "morgan";
-import cron from 'node-cron';
-import { sendFestiveMessages } from "./controllers/festiveModule/festive.controller.js";
+
 
 env.config()
 
 const PORT = process.env.PORT || 4000
 const app = express()
 
-//middlewares
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('common'));
@@ -31,19 +30,6 @@ routes.forEach(async route => {
   const routeModule = await import(`./routes/${route}`);
   app.use('/api', routeModule.default);
 });
-
-
-// Cron job to check festive dates every day at midnight
-cron.schedule('0 8,14,20 * * *', async () => {
-  console.log('Running cron job at specified times...');
-  try {
-    await sendFestiveMessages();
-    console.log('Festive messages sent successfully!');
-  } catch (error) {
-    console.error('Error in sending festive messages:', error);
-  }
-});
-
 
 
 app.listen(PORT,()=>{

@@ -9,10 +9,10 @@ const db = mysql.createPool({
   user: process.env.DB_USER,             // MySQL user
   password: process.env.DB_PASSWORD,     // MySQL password
   database: process.env.DB_NAME,         // MySQL database name
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306, // Ensure port is a number, default to 3306
+  // port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   waitForConnections: true,              // Wait for connections if pool is full
   connectionLimit: 10,                   // Max number of connections in the pool
-  queueLimit: 0                          // Unlimited queue limit
+  queueLimit: 0                       // Unlimited queue limit
 });
 
 // Test the database connection

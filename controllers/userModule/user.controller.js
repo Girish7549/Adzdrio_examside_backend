@@ -1,4 +1,4 @@
-import { getAllUsersModel, getUserByIdModel, editUserByIdModel, deleteUserByIdModal, getUserCountModel } from "../../models/user.model.js";
+import { getAllUsersModel, getUserByIdModel, editUserByIdModel, deleteUserByIdModal, getUserCountModel, createUserModel } from "../../models/user.model.js";
 import cloudinary from "../../config/cloudinary.js";
 import fs from "fs";
 import path from "path";
@@ -18,6 +18,23 @@ export const getAllUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const createUser = async (req, res) => {
+  const { first_name, last_name, email, password, phone } = req.body;
+
+  // Simple validation
+  if (!first_name || !last_name || !email || !password || !phone) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const result = await createUserModel({ first_name, last_name, email, password, phone });
+    res.status(201).json({ message: 'User created successfully', data: result });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Failed to create user' });
   }
 };
 

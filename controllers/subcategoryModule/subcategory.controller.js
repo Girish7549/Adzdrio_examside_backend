@@ -1,21 +1,24 @@
-import { createSubcategoryModel, deleteSubcategoryByIdModel, editSubcategoryByIdModel, filterSubcategoryByIdModel, getAllSubcategoryModel, getSubcategoryByIdModel } from "../../models/subcategory.model.js";
+import { createSubcategoryModel, deleteSubcategoryByIdModel, editSubcategoryByIdModel, filterSubcategoryByIdModel, getAllSubcategoryModel, getSubcategoryByIdModel, getSubcategoryByIdSub_unit_chapter } from "../../models/subcategory.model.js";
 
 export const createSubcategory = async (req, res) => {
     try {
-        const { subcategoryName, description, status } = req.body;
-        
+        const { subcategoryName, description, status, subcatText } = req.body;
         const { categoryId } = req.params;
 
-        if(!categoryId) {
-            return res.status(400).json({message : "Category Id is Required in params and Valid Category Id Provide"});
+        if (isNaN(categoryId) || categoryId <= 0) {
+            return res.status(400).json({ message: "Invalid Category ID" });
         }
 
-        if(!subcategoryName || !description) {
-            return res.status(400).json({message : "All fields are required!"})
+        if (!subcategoryName || !description ||  !subcatText || !status) {
+            return res.status(400).json({ message: "All fields are required!" });
+        }
+
+        if (status !== 'active' && status !== 'inactive') {
+            return res.status(400).json({ message: "Invalid status value. Should be 'active' or 'inactive'" });
         }
 
         // Call the model function
-        const result = await createSubcategoryModel(subcategoryName, description, categoryId, status);
+        const result = await createSubcategoryModel(subcategoryName, description, categoryId, subcatText, status);
 
         // Check for errors
         if (result.error) {
@@ -28,6 +31,7 @@ export const createSubcategory = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
+
 
 
 
@@ -70,9 +74,9 @@ export const getSubcategoryById = async (req, res) => {
 export const editSubcategoryById = async (req, res) => {
     try {
         const {categoryId} = req.params;
-        const {subcategoryName, description, status} = req.body;
+        const {subcategoryName, description, status, subcatText} = req.body;
 
-        const result = await editSubcategoryByIdModel(subcategoryName, description, status, categoryId);
+        const result = await editSubcategoryByIdModel(subcategoryName, description, subcatText, status, categoryId);
 
         if(!result) {
             return res.status(400).json({message : "Subcategory not update"});
@@ -126,3 +130,26 @@ export const filterSubcategoryById = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 }
+
+
+export const getSubcategoryByIdDataController = async (req, res) => {
+  const { subcategoryId } = req.params; // Get subcategoryId from URL params
+  
+  try {
+    // Call the function to get data from the database
+    const subcategoryData = await getSubcategoryByIdSub_unit_chapter(subcategoryId);
+
+    // If no data was found for this subcategoryId
+    if (!subcategoryData || subcategoryData.subject.length === 0) {
+      return res.status(404).json({ error: 'Subcategory not found or no data available' });
+    }
+
+    // Send the fetched data as JSON response
+    res.json(subcategoryData);
+    
+  } catch (error) {
+    // Handle any unexpected errors
+    console.error('Error in getSubcategoryController:', error);
+    res.status(500).json({ error: 'Internal server error. Please try again later.' });
+  }
+};

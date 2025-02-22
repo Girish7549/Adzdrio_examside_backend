@@ -1,17 +1,16 @@
-import cloudinary from "../../config/cloudinary.js";
-import path from 'path';
-import fs from 'fs';
-import { createCategoryModel, deleteCategoryByIdModel, editCategoryByIdModel, getAllCategoryAdminModel, getAllCategoryModel, getAllProductByCategoryModel, getCategoryByIdModel, getCategoryByIdModels, getProductByCategoryNameModel } from "../../models/category.model.js";
+import { createCategoryModel, 
+  deleteCategoryByIdModel, 
+  editCategoryByIdModel, 
+  getAllCategoryAdminModel, 
+  getAllCategoryModel, 
+  getCategoryByIdModel, 
+  getAllCategorySubCategorySubject,
+  getAllCategories_SubcategoryModal} from "../../models/category.model.js";
 
 export const createCategory = async (req, res) => {
   const { categoryName, description, status } = req.body;
-  const categoryImage = req.file;
 
-  if (!categoryImage) {
-    return res.status(400).json({ message: "Category Image not Upload" });
-  }
-
-  if (!categoryName || !description) {
+  if (!categoryName || !description || !status) {
     return res.status(400).json({ message: "All fields are required!" });
   }
 
@@ -20,23 +19,9 @@ export const createCategory = async (req, res) => {
   }
 
   try {
-    const categoryImagePath = categoryImage.path;
 
-    const cloudinaryResult = await cloudinary.uploader.upload(
-      categoryImagePath,
-      {
-        folder: "profile_images",
-        public_id: `${Date.now()}-${path.basename(categoryImagePath)}`,
-      }
-    );
-
-    const categoryUrl = cloudinaryResult.secure_url;
-
-    // Delete the local processed image filez
-    fs.unlinkSync(categoryImagePath);
-
-    const result = await createCategoryModel(categoryName, description, categoryUrl, status);
-
+    const result = await createCategoryModel(categoryName, description,  status);
+    
     return res.status(201).json("Category Created Successfully!");
   } catch (error) {
     console.log(error);
@@ -104,11 +89,10 @@ export const editCategoryById = async (req, res) => {
   }
 
   const { categoryName, description, status } = req.body;
-  const categoryImage = req.file;
 
   try {
       // Fetch the current category details from the model
-      const existingCategory = await getCategoryByIdModels(categoryId);
+      const existingCategory = await editCategoryByIdModel(categoryId);
 
       if (!existingCategory) {
           return res.status(404).json({ message: "Category not found!" });
@@ -119,33 +103,9 @@ export const editCategoryById = async (req, res) => {
       const updatedDescription = description || existingCategory.description;
       const updatedStatus = status || existingCategory.status;
 
-      // Use the existing image URL by default
-      let categoryUrl = existingCategory.category_url;
-
-      // If a new image is uploaded, process it
-      if (categoryImage) {
-          const categoryImagePath = categoryImage.path;
-
-          // Upload the new image to Cloudinary
-          const cloudinaryResult = await cloudinary.uploader.upload(
-              categoryImagePath,
-              {
-                  folder: "profile_images",
-                  public_id: `${Date.now()}-${path.basename(categoryImagePath)}`,
-              }
-          );
-
-          // Get the new image URL
-          categoryUrl = cloudinaryResult.secure_url;
-
-          // Delete the local processed image file
-          fs.unlinkSync(categoryImagePath);
-      }
-
       const result = await editCategoryByIdModel(
           updatedCategoryName,
           updatedDescription,
-          categoryUrl,
           updatedStatus,
           categoryId
       );
@@ -180,33 +140,29 @@ export const deleteCategoryById = async (req, res) => {
   }
 };
 
-export const getAllProductByCategory = async (req, res) => {
+
+export const getCategoriesCat_sub_subject = async (req, res) => {
   try {
-    const result = await getAllProductByCategoryModel();
-
-    if(!result) {
-        return res.status(400).json({message : "Product not present for this category at this time!"});
-    }
-
-    return res.status(200).json(result);
+    // Call the method from the categoryModal to fetch the data
+    const data = await getAllCategorySubCategorySubject(req, res);
+    res.status(200).json(data);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
 
-export const getAllProductByCategoryName = async (req, res) => {
+export const getAllCategoriesCatwithSubcategory = async (req, res) => {
   try {
-    const result = await getProductByCategoryNameModel();
-
-    if(!result) {
-        return res.status(400).json({message : "Product not present for this category at this time!"});
-    }
-
-    return res.status(200).json(result);
+    // Call the method from the categoryModal to fetch the data
+    const data = await getAllCategories_SubcategoryModal(req, res);
+    res.status(200).json(data);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
+

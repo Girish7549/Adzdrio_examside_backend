@@ -3,8 +3,8 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
+    // key_id: process.env.RAZORPAY_KEY_ID,
+    // key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // Controller to create a Razorpay order
@@ -31,39 +31,39 @@ export const createOrderPayment = async (req, res) => {
 
 
 // Controller to verify payment
-export const verifyPayment = async (req, res) => {
-    const {
-        order_id,
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        amount_paid,
-    } = req.body;
+// export const verifyPayment = async (req, res) => {
+//     const {
+//         order_id,
+//         razorpay_payment_id,
+//         razorpay_order_id,
+//         razorpay_signature,
+//         amount_paid,
+//     } = req.body;
 
-    // Verify the Razorpay signature
-    const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-    shasum.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-    const generatedSignature = shasum.digest('hex');
+//     // Verify the Razorpay signature
+//     const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+//     shasum.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+//     const generatedSignature = shasum.digest('hex');
 
-    if (generatedSignature === razorpay_signature) {
-        // Prepare payment data
-        const paymentData = {
-            order_id,
-            razorpay_payment_id,
-            razorpay_order_id,
-            razorpay_signature,
-            payment_status: 'success',
-            payment_method: 'razorpay',
-            amount_paid
-        };
+//     if (generatedSignature === razorpay_signature) {
+//         // Prepare payment data
+//         const paymentData = {
+//             order_id,
+//             razorpay_payment_id,
+//             razorpay_order_id,
+//             razorpay_signature,
+//             payment_status: 'success',
+//             payment_method: 'razorpay',
+//             amount_paid
+//         };
 
-        try {
-            const paymentId = await savePaymentDetailsModel(paymentData);
-            return res.json({ message: 'Payment verified and saved', payment_id: paymentId });
-        } catch (error) {
-           return res.status(500).json({ message: 'Database Error: Unable to save payment' });
-        }
-    } else {
-       return res.status(400).json({ message: 'Invalid signature, payment failed' });
-    }
-};
+//         try {
+//             const paymentId = await savePaymentDetailsModel(paymentData);
+//             return res.json({ message: 'Payment verified and saved', payment_id: paymentId });
+//         } catch (error) {
+//            return res.status(500).json({ message: 'Database Error: Unable to save payment' });
+//         }
+//     } else {
+//        return res.status(400).json({ message: 'Invalid signature, payment failed' });
+//     }
+// };
